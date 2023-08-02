@@ -1,0 +1,27 @@
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using System.Threading.Tasks;
+
+namespace ConsoleApp4
+{
+    internal class Program
+    {
+        static async Task Main(string[] args)
+        {
+            Console.WriteLine(await AccessTokenGenerator());
+        }
+
+        public static async Task<string> AccessTokenGenerator()
+        {
+            string clientId = "13df98dc-9dfc-4b2b-8255-dca0e171876f";
+            string clientSecret = "rV98Q~Z6Rvm-.vRc0wqA_CCSX23SiByzxUm7Kahr";
+            string authority = "https://login.microsoftonline.com/e3a8922e-40b0-4804-8eb0-971f15f73877";
+            string resourceUrl = "https://orgd59dbe8d.crm4.dynamics.com"; // Org URL  
+
+            ClientCredential credentials = new ClientCredential(clientId, clientSecret);
+            var authContext = new Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext(authority);
+            var result = await authContext.AcquireTokenAsync(resourceUrl, credentials);
+            return result.AccessToken;
+        }
+    }  
+}
+
