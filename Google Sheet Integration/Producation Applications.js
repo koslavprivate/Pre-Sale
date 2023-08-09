@@ -1,21 +1,44 @@
-let dataGoogleSheets;
-const PERSONAL_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyIsImtpZCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyJ9.eyJhdWQiOiJodHRwczovL29yZ2Q1OWRiZThkLmNybTQuZHluYW1pY3MuY29tIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvZTNhODkyMmUtNDBiMC00ODA0LThlYjAtOTcxZjE1ZjczODc3LyIsImlhdCI6MTY5MTA2NjkyOCwibmJmIjoxNjkxMDY2OTI4LCJleHAiOjE2OTEwNzA4MjgsImFpbyI6IkUyRmdZSGg5dGUyUm0zV3ppWm5NVnNhY0IwSENBQT09IiwiYXBwaWQiOiIxM2RmOThkYy05ZGZjLTRiMmItODI1NS1kY2EwZTE3MTg3NmYiLCJhcHBpZGFjciI6IjEiLCJpZHAiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9lM2E4OTIyZS00MGIwLTQ4MDQtOGViMC05NzFmMTVmNzM4NzcvIiwib2lkIjoiNWIxZDIzOTEtOGQxYy00ZGVjLWEwNGUtMGY4OTY5MDE1MTMyIiwicmgiOiIwLkFhOEFMcEtvNDdCQUJFaU9zSmNmRmZjNGR3Y0FBQUFBQUFBQXdBQUFBQUFBQUFDdkFBQS4iLCJzdWIiOiI1YjFkMjM5MS04ZDFjLTRkZWMtYTA0ZS0wZjg5NjkwMTUxMzIiLCJ0aWQiOiJlM2E4OTIyZS00MGIwLTQ4MDQtOGViMC05NzFmMTVmNzM4NzciLCJ1dGkiOiJDQ3JPMXpodm8waUZ5TF9odXBZQ0FBIiwidmVyIjoiMS4wIiwieG1zX2NhZSI6IjEifQ.Tj32TngQO-Yx5wF5eNSXUOolBviI0n3cwx6IGR7IPdKHWxeVgEYG-hVlJe1QiXvI5w77KCI2xBFDCPFhAev6BlEsE9DBbqLdqGS8RYa34c3LVfrNInBnKSihIyThaEDOTjsX6k5zTG2mY361HU5g9EidrI31nxEqAjh7s2ZTVwVH71GWK22MB8tP8qvS5LmxcpAnrPE5KhJzt3B3jD0WUjpCyS4CIETXY96p35iu9odatsFtf5WemlTqxkYz7pHqdcde7y0Rr28C3KM_72HJymq9yPnFDdS7ZBmZmcrT2zN1mUUVkhyzcLvn6MvXiv9IaM2S0duNvKae3MiV8Vu90g";
 const API_URL = "https://orgd59dbe8d.api.crm4.dynamics.com/api/data/v9.2/";
 
+function updateToken() {
+  const token = generateToken();
+  Logger.log(token);
+  PropertiesService.getScriptProperties().setProperty('Token', token);
+}
 
-function getDataGoogleSheets() {
-  const spreadsheet = SpreadsheetApp.getActive();
-  const sheet = spreadsheet.getSheetByName('Аркуш1');
-  const dataRange = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
-  dataGoogleSheets = dataRange.getValues();
-  console.log(dataGoogleSheets);
+function generateToken() {
+    var payload = {
+      grant_type: "client_credentials",
+      client_id: "13df98dc-9dfc-4b2b-8255-dca0e171876f",
+      client_secret: "rV98Q~Z6Rvm-.vRc0wqA_CCSX23SiByzxUm7Kahr",
+      resource: "https://orgd59dbe8d.crm4.dynamics.com"
+    };
+
+    const payloadString = Object.keys(payload).map(function(key) {
+      return encodeURIComponent(key) + "=" + encodeURIComponent(payload[key]);
+    }).join("&");
+
+
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded"
+    };
+
+    const response = UrlFetchApp.fetch("https://login.microsoftonline.com/e3a8922e-40b0-4804-8eb0-971f15f73877/oauth2/token", {
+        method: "POST",
+        headers: headers,
+        payload: payloadString
+    });
+
+    const responseData = JSON.parse(response.getContentText());
+    return responseData.access_token;
 }
 
 function readData() {   
+   const token = PropertiesService.getScriptProperties().getProperty('Token');
    const DATA_ENDPOINT = "cr254_producationapplications";
    const response = UrlFetchApp.fetch(API_URL + DATA_ENDPOINT, {
        headers: {
-           "Authorization": "Bearer " + PERSONAL_ACCESS_TOKEN
+           "Authorization": "Bearer " + token
        }
    });
    const content = JSON.parse(response.getContentText());
@@ -24,7 +47,6 @@ function readData() {
 }
 
 function updateData() {
-  
    const HEADERS = ['Name', 'Field 1', 'Field 2', 'Field 3', 'Id', '__PowerAppsId__']
    const spreadsheet = SpreadsheetApp.getActive();
    const sheet = spreadsheet.getSheetByName('Аркуш1');
@@ -109,6 +131,7 @@ function onEditTrigger(e) {
 }
 
 function createRecord(row, col, value) {
+    const token = PropertiesService.getScriptProperties().getProperty('Token');
     let property = PropertyName(col);
     if (property === "cr254_field2") {
       value = parseFloat(value);
@@ -116,7 +139,7 @@ function createRecord(row, col, value) {
 
     const DATA_ENDPOINT = "cr254_producationapplications";
     const headers = {
-      "Authorization": "Bearer " + PERSONAL_ACCESS_TOKEN,
+      "Authorization": "Bearer " + token,
       "Content-Type": "application/json",
       "OData-MaxVersion": "4.0",
       "OData-Version": "4.0",
@@ -139,6 +162,7 @@ function createRecord(row, col, value) {
   }
 
   function updateProperty(id, col, val) {
+    const token = PropertiesService.getScriptProperties().getProperty('Token');
     let property = PropertyName(col);
     if (property === "cr254_field2") {
       val = parseFloat(val).toFixed(1);
@@ -146,7 +170,7 @@ function createRecord(row, col, value) {
   
   const DATA_ENDPOINT = `cr254_producationapplications(${id})/${property}`;
   const headers = {
-    "Authorization": "Bearer " + PERSONAL_ACCESS_TOKEN,
+    "Authorization": "Bearer " + token,
     "Content-Type": "application/json",
     "OData-MaxVersion": "4.0",
     "OData-Version": "4.0"
@@ -166,6 +190,7 @@ function createRecord(row, col, value) {
 }
 
 function updateProperty(id, col, val) {
+  const token = PropertiesService.getScriptProperties().getProperty('Token');
   let property = PropertyName(col);
   
   if (val === undefined) {
@@ -177,7 +202,7 @@ function updateProperty(id, col, val) {
   
   const DATA_ENDPOINT = `cr254_producationapplications(${id})/${property}`;
   const headers = {
-    "Authorization": "Bearer " + PERSONAL_ACCESS_TOKEN,
+    "Authorization": "Bearer " + token,
     "Content-Type": "application/json",
     "OData-MaxVersion": "4.0",
     "OData-Version": "4.0"
@@ -197,9 +222,10 @@ function updateProperty(id, col, val) {
 }
 
 function deleteRecord(id) {
+  const token = PropertiesService.getScriptProperties().getProperty('Token');
   const DATA_ENDPOINT = `cr254_producationapplications(${id})`;
   const headers = {
-    "Authorization": "Bearer " + PERSONAL_ACCESS_TOKEN,
+    "Authorization": "Bearer " + token,
     "Content-Type": "application/json",
     "OData-MaxVersion": "4.0",
     "OData-Version": "4.0"
@@ -232,55 +258,4 @@ function setCellValue(row, col, value) {
   const sheet = spreadsheet.getSheetByName('Аркуш1'); // Замените на имя вашего листа
   const cell = sheet.getRange(row, col);
   cell.setValue(value);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function getAccessToken() {
-  eval(UrlFetchApp.fetch('https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js').getContentText());
-  const msalConfig = {
-    auth: {
-      clientId: '13df98dc-9dfc-4b2b-8255-dca0e171876f', // Замените на ваш client_id из Azure AD
-      authority: 'https://login.microsoftonline.com/e3a8922e-40b0-4804-8eb0-971f15f73877', // Замените на ваш tenant_id из Azure AD
-      redirectUri: 'https://orgd59dbe8d.crm4.dynamics.com' // Замените на URL вашего приложения
-    }
-  };
-
-  // Создание экземпляра объекта MSAL
-  const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-  // Запрашиваемый область (scopes) и другие параметры для запроса токена доступа
-  const request = {
-    scopes: ['user.read'], // Замените на необходимые области (scopes) вашего приложения
-    prompt: 'select_account' // Дополнительные параметры, если необходимо
-  };
-
-  // Выполняем процесс авторизации и получаем токен доступа
-  msalInstance.loginPopup(request).then(response => {
-    // Получаем токен доступа из ответа
-    const accessToken = response.accessToken;
-
-    // Используйте полученный токен доступа для доступа к защищенным ресурсам на сервере
-    console.log('Access token:', accessToken);
-  }).catch(error => {
-    // Обработка ошибок, если произошла ошибка авторизации
-    console.log('An error occurred during login:', error);
-});
 }
