@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\ILMerge.3.0.29\build\ILMerge.props" Condition="Exists('packages\ILMerge.3.0.29\build\ILMerge.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8C5D4EB8-B210-4473-A6B2-41A1249E1681}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -13,6 +14,8 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -111,14 +114,34 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SyncGoogleSheets.cs" />
+    <Compile Include="Entities\cr254_ProducationApplication.cs" />
+    <Compile Include="Entities\CrmServiceContext.cs" />
+    <Compile Include="Enums\appaction_ClientType.cs" />
+    <Compile Include="Enums\card_Sizes.cs" />
+    <Compile Include="Enums\cr254_ProducationApplication_StatusCode.cs" />
+    <Compile Include="Enums\msdyn_forecastsettingsandsummary_msdyn_ForecastJobStatus.cs" />
+    <Compile Include="Enums\msdyn_knowledgemanagementsetting_msdyn_actionlist.cs" />
+    <Compile Include="Enums\msdyn_msdyn_requirementrelationship_msdyn_resourcegroupings.cs" />
+    <Compile Include="Enums\msdyn_ocapplepay_msdyn_MerchantCapabilities.cs" />
+    <Compile Include="Enums\msdyn_ocapplepay_msdyn_SupportedNetworks.cs" />
+    <Compile Include="Enums\msdyn_oc_daysofweek.cs" />
+    <Compile Include="Enums\OptionSets.cs" />
+    <Compile Include="GoogleSheetsHelper.cs" />
+    <Compile Include="ProducationApplicationMapper.cs" />
+    <Compile Include="ChangesForGoogleSheetsByProducationApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="client_secret_118542757843-bu7b4dr1emh1jd22ae9skiqj00eibrmm.apps.googleusercontent.com.json" />
     <None Include="key.snk" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\ILMerge.3.0.29\build\ILMerge.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILMerge.3.0.29\build\ILMerge.props'))" />
+  </Target>
 </Project>

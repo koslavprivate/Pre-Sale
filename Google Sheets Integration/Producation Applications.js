@@ -47,13 +47,13 @@ function readData() {
 }
 
 function updateData() {
-   const HEADERS = ['Name', 'Field 1', 'Field 2', 'Field 3', 'Id', '__PowerAppsId__']
+   const HEADERS = ['Name', 'Field 1', 'Field 2', 'Field 3', 'Id']
    const spreadsheet = SpreadsheetApp.getActive();
    const sheet = spreadsheet.getSheetByName('Аркуш1');
    sheet.clear();
    sheet.appendRow(HEADERS);
 
-  const headerRange = sheet.getRange(1, 1, 1, HEADERS.length - 1);
+  const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
   headerRange.setBackground('yellow');
 
    const content = readData();
